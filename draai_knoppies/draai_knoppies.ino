@@ -3,7 +3,7 @@
 
 #if BEEPER
 #define BEEPER_IMPLEMENTATION
-#include "../libs/beeper/beeper.h"
+#include "beeper.h"
 Beeper beeper;
 #endif
 

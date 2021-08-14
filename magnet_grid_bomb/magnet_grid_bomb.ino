@@ -6,7 +6,7 @@
 
 #if BEEPER
 #define BEEPER_IMPLEMENTATION
-#include "../lib/beeper/beeper.h"
+#include "beeper.h"
 Beeper beeper;
 #endif
 
@@ -19,13 +19,8 @@ enum {
 int led_pins[][3] = {{2, 0, 6}, {7, 4, 8}, {3, 5, 9}};
 #endif
 
-#if TANAGRAM
-int blink_pin = 10;
+int led_pin = 12;
 int beeper_pin = 11;
-#else
-int blink_pin = 12;
-int beeper_pin = 11;
-#endif
 int input_pins[] = {A0, A1, A2, A3, A4};
 
 byte histories[COUNT_OF(input_pins)][32];
@@ -42,8 +37,8 @@ void setup() {
         }
     }
 #endif
-    pinMode(blink_pin, OUTPUT);
-    digitalWrite(blink_pin, LOW);
+    pinMode(led_pin, OUTPUT);
+    digitalWrite(led_pin, LOW);
 
     for (int i = 0; i < COUNT_OF(input_pins); ++i) {
         for (int j = 0; j < COUNT_OF(histories[i]); ++j) {
@@ -69,7 +64,7 @@ void loop() {
             if ((now - last_time) > frequency) {
                 last_time = now;
                 led_state = !led_state;
-                digitalWrite(blink_pin, led_state ? HIGH : LOW);
+                digitalWrite(led_pin, led_state ? HIGH : LOW);
             }
         }
 
@@ -150,7 +145,7 @@ void loop() {
             }
         }
 #endif
-        digitalWrite(blink_pin, LOW);
+        digitalWrite(led_pin, LOW);
         stopBeeper(&beeper);
     }
 }
