@@ -20,7 +20,8 @@ int led_pins[][3] = {{2, 0, 6}, {7, 4, 8}, {3, 5, 9}};
 #endif
 
 int led_pin = 12;
-int beeper_pin = 11;
+int beeper_pin = 10;
+int reset_pin = 9;
 int input_pins[] = {A0, A1, A2, A3, A4};
 
 byte histories[COUNT_OF(input_pins)][32];
@@ -37,6 +38,7 @@ void setup() {
         }
     }
 #endif
+    pinMode(reset_pin, INPUT_PULLUP);
     pinMode(led_pin, OUTPUT);
     digitalWrite(led_pin, LOW);
 
@@ -57,6 +59,13 @@ int last_time_pattern = 0;
 int pin_index = 0;
 #endif
 void loop() {
+    if (digitalRead(reset_pin) == LOW) {
+        state = kStateInitial;
+        history_index = 0;
+        memset(histories, 0, sizeof(histories));
+        return;
+    }
+
     if (state == kStateInitial) {
         {
             int frequency = 500;

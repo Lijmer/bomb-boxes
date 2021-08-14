@@ -15,6 +15,7 @@ enum {
 int led_pin = 12;
 int input_pin = 11;
 int beeper_pin = 10;
+int reset_pin = 9;
 int state = kStateInitial;
 int last_time = 0;
 bool led_state = false;
@@ -23,6 +24,7 @@ void setup() {
     // put your setup code here, to run once:
 
     pinMode(input_pin, INPUT_PULLUP);
+    pinMode(reset_pin, INPUT_PULLUP);
     pinMode(led_pin, OUTPUT);
     digitalWrite(led_pin, LOW);
 
@@ -33,6 +35,11 @@ void setup() {
 
 void loop() {
     // put your main code here, to run repeatedly:
+
+    if (digitalRead(reset_pin) == LOW) {
+        state = kStateInitial;
+        return;
+    }
 
     if (state == kStateInitial) {
 #if BEEPER

@@ -15,11 +15,13 @@ enum {
 };
 int blink_frequencies[] = {500, 100, 0};
 int led_pin = 12;
-int beeper_pin = 11;
+int beeper_pin = 10;
+int reset_pin = 9;
 int button_pins[] = {2, 3, 4, 5, 6, 7, 8};
 
 void setup() {
     pinMode(led_pin, OUTPUT);
+    pinMode(reset_pin, INPUT_PULLUP);
 
     for (int i = 0; i < COUNT_OF(button_pins); ++i) {
         pinMode(button_pins[i], INPUT_PULLUP);
@@ -46,6 +48,12 @@ void loop() {
         stopBeeper(&beeper);
     }
 #endif
+
+    if (digitalRead(reset_pin) == LOW) { // pressed
+        state = kStateInitial;
+        playback_counter = 0;
+        return;
+    }
 
     // set lights
     int frequency = blink_frequencies[state];
