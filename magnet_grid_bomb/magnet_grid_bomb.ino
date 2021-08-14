@@ -1,5 +1,4 @@
 #define COUNT_OF(x) (sizeof(x) / sizeof(*x))
-#define TANAGRAM 0
 #define DEBUGGING 0
 #define LED_PATTERN 0
 #define BEEPER 1
