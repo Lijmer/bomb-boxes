@@ -1,11 +1,21 @@
 #define COUNT_OF(x) (sizeof(x) / sizeof(*x))
 #define DEBUGGING 0
-#define LED_PATTERN 0
+#define LED_PATTERN 1
 #define BEEPER 1
 
 #if BEEPER
 #define BEEPER_IMPLEMENTATION
 #include "beeper.h"
+
+BeeperFreq beeper_frequencies[] = {
+    {4800, 200, 60 * 1000L},               // 60
+    {800, 200, 60 * 1000L},                // 60
+    {400, 100, 30 * 1000L},                // 30
+    {100, 100, 10 * 1000L},                // 10
+    {0, BEEPER_FREQ_INFINITE, 3 * 1000L},  // 3
+    {BEEPER_FREQ_INFINITE, 0, 30 * 1000L}, // 30
+};
+
 Beeper beeper;
 #endif
 
@@ -16,11 +26,13 @@ enum {
 
 #if LED_PATTERN
 int led_pins[][3] = {{2, 0, 6}, {7, 4, 8}, {3, 5, 9}};
+int reset_pin = 11;
+#else
+int reset_pin = 9;
 #endif
 
 int led_pin = 12;
 int beeper_pin = 10;
-int reset_pin = 9;
 int input_pins[] = {A0, A1, A2, A3, A4};
 
 byte histories[COUNT_OF(input_pins)][32];
@@ -47,29 +59,43 @@ void setup() {
         }
     }
 
-    setupBeeper(beeper_pin, &beeper);
+    setupBeeper(beeper_pin, COUNT_OF(beeper_frequencies), beeper_frequencies, &beeper);
 }
 
 int state = kStateInitial;
-int last_time = 0;
+uint32_t last_time = 0;
 bool led_state = 0;
 #if LED_PATTERN
-int last_time_pattern = 0;
+uint32_t last_time_pattern = 0;
 int pin_index = 0;
 #endif
+uint32_t blink_disable_timer = 0;
 void loop() {
     if (digitalRead(reset_pin) == LOW) {
         state = kStateInitial;
         history_index = 0;
-        memset(histories, 0, sizeof(histories));
+        memset(histories, 0xff, sizeof(histories));
+
+        blink_disable_timer = millis() + 2000;
+        led_state = false;
+        digitalWrite(led_pin, LOW);
+
+#if LED_PATTERN
+        for (int i = 0; i < COUNT_OF(led_pins); ++i) {
+            for (int j = 0; j < COUNT_OF(led_pins[i]); ++j) {
+                digitalWrite(led_pins[j][i], LOW);
+            }
+        }
+#endif
+
         return;
     }
 
     if (state == kStateInitial) {
         {
             int frequency = 500;
-            int now = millis();
-            if ((now - last_time) > frequency) {
+            uint32_t now = millis();
+            if ((now - last_time) > frequency && now > blink_disable_timer) {
                 last_time = now;
                 led_state = !led_state;
                 digitalWrite(led_pin, led_state ? HIGH : LOW);
@@ -120,9 +146,9 @@ void loop() {
 
 #if LED_PATTERN
         {
-            int frequency = 100;
-            int now = millis();
-            if ((now - last_time_pattern) > frequency) {
+            uint32_t frequency = 100;
+            uint32_t now = millis();
+            if ((now - last_time_pattern) > frequency && now > blink_disable_timer) {
                 last_time_pattern = now;
 
                 for (int j = 0; j < 3; ++j) {
