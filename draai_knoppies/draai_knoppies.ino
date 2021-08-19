@@ -11,7 +11,9 @@ BeeperFreq beeper_frequencies[] = {
     {400, 100, 30 * 1000L},                // 30
     {100, 100, 10 * 1000L},                // 10
     {0, BEEPER_FREQ_INFINITE, 3 * 1000L},  // 3
-    {BEEPER_FREQ_INFINITE, 0, 30 * 1000L}, // 30
+    {BEEPER_FREQ_INFINITE, 0, 13 * 1000L}, // 13
+    {100, 100, 600L},                      // 0.6
+    {BEEPER_FREQ_INFINITE, 0, 17 * 1000L}, // 17
 };
 
 Beeper beeper;

@@ -13,7 +13,9 @@ BeeperFreq beeper_frequencies[] = {
     {400, 100, 30 * 1000L},                // 30
     {100, 100, 10 * 1000L},                // 10
     {0, BEEPER_FREQ_INFINITE, 3 * 1000L},  // 3
-    {BEEPER_FREQ_INFINITE, 0, 30 * 1000L}, // 30
+    {BEEPER_FREQ_INFINITE, 0, 13 * 1000L}, // 13
+    {100, 100, 600L},                      // 0.6
+    {BEEPER_FREQ_INFINITE, 0, 17 * 1000L}, // 17
 };
 
 Beeper beeper;
@@ -24,12 +26,7 @@ enum {
     kStateFinished = 1,
 };
 
-#if LED_PATTERN
-int led_pins[][3] = {{2, 0, 6}, {7, 4, 8}, {3, 5, 9}};
-int reset_pin = 11;
-#else
 int reset_pin = 9;
-#endif
 
 int led_pin = 12;
 int beeper_pin = 10;
@@ -41,14 +38,7 @@ void setup() {
 #if DEBUGGING
     Serial.begin(9600);
 #endif
-#if LED_PATTERN
-    for (int i = 0; i < COUNT_OF(led_pins); ++i) {
-        for (int j = 0; j < COUNT_OF(led_pins[i]); ++j) {
-            pinMode(led_pins[i][j], OUTPUT);
-            digitalWrite(led_pins[i][j], LOW);
-        }
-    }
-#endif
+
     pinMode(reset_pin, INPUT_PULLUP);
     pinMode(led_pin, OUTPUT);
     digitalWrite(led_pin, LOW);
@@ -65,11 +55,8 @@ void setup() {
 int state = kStateInitial;
 uint32_t last_time = 0;
 bool led_state = 0;
-#if LED_PATTERN
-uint32_t last_time_pattern = 0;
-int pin_index = 0;
-#endif
 uint32_t blink_disable_timer = 0;
+
 void loop() {
     if (digitalRead(reset_pin) == LOW) {
         state = kStateInitial;
@@ -79,14 +66,6 @@ void loop() {
         blink_disable_timer = millis() + 2000;
         led_state = false;
         digitalWrite(led_pin, LOW);
-
-#if LED_PATTERN
-        for (int i = 0; i < COUNT_OF(led_pins); ++i) {
-            for (int j = 0; j < COUNT_OF(led_pins[i]); ++j) {
-                digitalWrite(led_pins[j][i], LOW);
-            }
-        }
-#endif
 
         return;
     }
@@ -144,41 +123,10 @@ void loop() {
             }
         }
 
-#if LED_PATTERN
-        {
-            uint32_t frequency = 100;
-            uint32_t now = millis();
-            if ((now - last_time_pattern) > frequency && now > blink_disable_timer) {
-                last_time_pattern = now;
-
-                for (int j = 0; j < 3; ++j) {
-                    digitalWrite(led_pins[pin_index][j], LOW);
-                }
-                pin_index = (pin_index + 1) % COUNT_OF(led_pins);
-                for (int j = 0; j < 3; ++j) {
-                    int i = pin_index;
-                    if ((i == 0 && j == 0) || (i == 1 && j == 0) || (i == 2 && j == 0) ||
-                        (i == 0 && j == 2)) {
-                        digitalWrite(led_pins[pin_index][j], success_array[i] ? HIGH : LOW);
-                    } else {
-                        digitalWrite(led_pins[pin_index][j], HIGH);
-                    }
-                }
-            }
-        }
-#endif
-
         if (all_success) {
             state = kStateFinished;
         }
     } else {
-#if LED_PATTERN
-        for (int i = 0; i < COUNT_OF(led_pins); ++i) {
-            for (int j = 0; j < COUNT_OF(led_pins[i]); ++j) {
-                digitalWrite(led_pins[i][j], LOW);
-            }
-        }
-#endif
         digitalWrite(led_pin, LOW);
         stopBeeper(&beeper);
     }
